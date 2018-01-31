@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(name='kivu',
       version='0.1',
@@ -7,6 +7,8 @@ setup(name='kivu',
       author='Altfund Capital',
       author_email='altfund@altfund.org',
       license='MIT',
-      packages=['kivu'],
-      install_requires=['pyxi==0.4'],
+      packages=find_packages(exclude=['contrib', 'docs', 'tests*']),
+#      install_requires=['pyxi==0.4'],
+#      test_suite='pytest',
+#      tests_require=['pytest'],
       zip_safe=False)
