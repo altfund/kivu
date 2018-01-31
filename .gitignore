@@ -1,5 +1,8 @@
 .pypirc
 /*.egg-info
+/*.eggs
 /env/
 *pyc
 /dist/
+
+/*.pytest_cache
