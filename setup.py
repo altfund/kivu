@@ -8,7 +8,9 @@ setup(name='kivu',
       author_email='altfund@altfund.org',
       license='MIT',
       packages=find_packages(exclude=['contrib', 'docs', 'tests*']),
-#      install_requires=['pyxi==0.4'],
+      install_requires=[numpy,
+      coinmarketcap
+      ],#'pyxi==0.4'],
 #      test_suite='pytest',
 #      tests_require=['pytest'],
       zip_safe=False)
