@@ -1,2 +1,2 @@
-from .pyxi import *
-from .ccxt_interface import *
+from .xi import *
+from .ccxt import *

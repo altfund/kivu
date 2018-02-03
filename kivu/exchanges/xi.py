@@ -13,7 +13,7 @@ import os
 import configparser
 
 from Crypto.Cipher import AES
-from .ccxt_interface import CcxtClient
+from .ccxt import CcxtClient
 
 #TODO
 # 1. figure out what to do about the invoke/package usage . problem
@@ -31,7 +31,7 @@ from .ccxt_interface import CcxtClient
 
 exchanges_limit_order_on_ccxt = ["BINANCE"]
 deprecated_exchanged = ['BTC38', 'BTCE', 'HUOBI','JUBI', 'CHBTC', 'BTER']
-exchanges = ['ALL', 'BINANCE', 'GDAX', 'KRAKEN', 'POLONIEX', 'BITFINEX', 'VAULTORO', 'TRUEFX', 'QUADRIGACX', 'LUNO', 'GEMINI', 'YOBIT', 'LIVECOIN', 'VIRCUREX',  'GATECOIN', 'THEROCK', 'RIPPLE', 'QUOINE', 'TAURUS',  'MERCADOBITCOIN', 'OKCOIN', 'POLONIEX', 'PAYMIUM', 'HITBTC', 'LAKEBTC', 'INDEPENDENTRESERVE', 'ITBIT', 'GDAX', 'KRAKEN', 'EMPOEX', 'DSX', 'CRYPTONIT', 'CRYPTOPIA', 'CRYPTOFACILITIES', 'COINMATE', 'COINFLOOR', 'COINBASE',  'CEXIO', 'CCEX', 'CAMPBX',  'BTCTRADE', 'BTCMARKETS',  'BTCC',  'BLOCKCHAIN', 'BLEUTRADE', 'BITTREX', 'BITSTAMP', 'BITSO', 'BITMARKET', 'BITFINEX', 'BITCUREX', 'BITCOINIUM', 'BITCOINDE', 'BITCOINCORE', 'BITCOINCHARTS', 'BITCOINAVERAGE', 'BITBAY', 'ANX']
+active_exchanges = ['ALL', 'BINANCE', 'GDAX', 'KRAKEN', 'POLONIEX', 'BITFINEX', 'VAULTORO', 'TRUEFX', 'QUADRIGACX', 'LUNO', 'GEMINI', 'YOBIT', 'LIVECOIN', 'VIRCUREX',  'GATECOIN', 'THEROCK', 'RIPPLE', 'QUOINE', 'TAURUS',  'MERCADOBITCOIN', 'OKCOIN', 'POLONIEX', 'PAYMIUM', 'HITBTC', 'LAKEBTC', 'INDEPENDENTRESERVE', 'ITBIT', 'GDAX', 'KRAKEN', 'EMPOEX', 'DSX', 'CRYPTONIT', 'CRYPTOPIA', 'CRYPTOFACILITIES', 'COINMATE', 'COINFLOOR', 'COINBASE',  'CEXIO', 'CCEX', 'CAMPBX',  'BTCTRADE', 'BTCMARKETS',  'BTCC',  'BLOCKCHAIN', 'BLEUTRADE', 'BITTREX', 'BITSTAMP', 'BITSO', 'BITMARKET', 'BITFINEX', 'BITCUREX', 'BITCOINIUM', 'BITCOINDE', 'BITCOINCORE', 'BITCOINCHARTS', 'BITCOINAVERAGE', 'BITBAY', 'ANX']
 # exchanges = ['GDAX', 'KRAKEN', 'POLONIEX', 'BITFINEX']
 default_limit_ask = {"order_type":"ASK","order_specs":{"base_currency":"ETH","quote_currency":"BTC","volume":"0.1","price":"10000","test":True}}
 default_limit_bid = {"order_type":"BID","order_specs":{"base_currency":"ETH","quote_currency":"BTC","volume":"0.01","price":"0.0001","test": True}}
@@ -128,7 +128,7 @@ def requestExchange(exchange, method, encrypted=True):
     config = getConfig()
     response = {}
     if exchange.lower() == 'all':
-        for an_exchange in exchanges:
+        for an_exchange in active_exchanges:
             data = {"exchange": an_exchange.lower()}
             r = send(data, method, config)
             data = decrypt(r)
@@ -155,7 +155,7 @@ def request( method, data=None):
     config = getConfig()
     response = {}
     if data['exchange'].lower() == 'all':
-        for an_exchange in exchanges:
+        for an_exchange in active_exchanges:
             data.update({"exchange": an_exchange.lower()})
             r = send(data, method, config)
             data = decrypt(r)
@@ -170,7 +170,7 @@ def requestOrderBook(method, exchange, base, quote):
     config = getConfig()
     response = {}
     if exchange.lower() == 'all':
-        for an_exchange in exchanges:
+        for an_exchange in active_exchanges:
             data = {'exchange':an_exchange,'base_currency':base,'quote_currency':quote}
             r = send(encrypt(data, config), method, config)
             data = decrypt(r)
@@ -187,7 +187,7 @@ def cancelLimitOrder(exchange, order_id, symbol=""):
     response = {}
     order_to_cancel = {}
     if exchange.lower() == 'all':
-        for exchange in exchanges:
+        for exchange in active_exchanges:
             creds = getCreds(exchange)
             order_to_cancel.update({"exchange_credentials": creds});
             order_to_cancel.update({"order_id": order_id});
@@ -265,7 +265,7 @@ def requestLimitOrder(exchange, limitorder, ordertype):
         else:
             response = {}
             #if exchange.lower() == 'all':
-            #    for exchange in exchanges:
+            #    for exchange in active_exchanges:
             #        creds = getCreds(exchange)
             #        limitorder.update({"exchange_credentials":creds})
             #        r = send(encrypt(limitorder, config), "limitorder", config)
@@ -333,7 +333,7 @@ def requestBalance(exchange):
         exchange_name = exchange
 
     if exchange_name.lower() == 'all':
-        for exchange in exchanges:
+        for exchange in active_exchanges:
             creds = getCreds(exchange)
             r = send(encrypt(creds, config), "balance", config)
             data = decrypt(r)
@@ -378,7 +378,7 @@ def requestOpenOrders(exchange, base="", quote=""):
         exchange = exchange['exchange_credentials']
 
     if exchange_name.lower() == 'all':
-        for exchange in exchanges:
+        for exchange in active_exchanges:
             creds = getCreds(exchange)
             r = send(encrypt(creds, config), "openorders", config)
             data = decrypt(r)
@@ -416,7 +416,7 @@ def requestFundingHistory( exchange, method="fundinghistory"):
         exchange_name = exchange
 
     if exchange_name.lower() == 'all':
-        for exchange in exchanges:
+        for exchange in active_exchanges:
             creds = getCreds(exchange)
             history_req.update({"exchange_credentials": creds});
             r = send(encrypt(history_req, config), method, config)
@@ -466,7 +466,7 @@ def requestTradeHistory(exchange, method="tradehistory"):
     temp.update({"page_length": "10"});
     history_req.update({"trade_params": temp});
     if exchange.lower() == 'all':
-        for exchange in exchanges:
+        for exchange in active_exchanges:
             creds = getCreds(exchange)
             history_req.update({"exchange_credentials": creds});
             r = send(encrypt(history_req, config), method, config)
@@ -511,7 +511,7 @@ def localRequestBalance(exchange):
     config = getConfig()
     response = {}
     if exchange.lower() == 'all':
-        for exchange in exchanges:
+        for exchange in active_exchanges:
             creds = getCreds(exchange)
             r = send(encrypt(creds, config), "balance", config)
             data = decrypt(r)
