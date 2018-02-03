@@ -1,3 +1,20 @@
+from collections import defaultdict
+import numpy as np
+import copy
+
+import logging
+logger = logging.getLogger('local')
+
+
+def mark_price(base_currency, quote_currency, markets):
+    trade_path = find_trade_path(sell_currency=base_currency,
+                                buy_currency=quote_currency, 
+                                markets=markets)
+    trade_prices = [markets[x['market']]['price']**(-1 if x['side']=='ASK' else 1) for x in trade_path]
+    mark_price = np.prod(trade_prices)
+    
+    return mark_price
+
 def percentage_rebalance(exchange, current_holdings, weights, mark_prices, global_quote_currency="USD",tolerance_percent=0.01):
     try:
         current_holdings_value = holdings_value(holdings=current_holdings, global_quote_currency=global_quote_currency,mark_prices=mark_prices)
@@ -66,7 +83,7 @@ def percentage_rebalance(exchange, current_holdings, weights, mark_prices, globa
                          ,markets=exchange['markets'],global_quote_currency=global_quote_currency)
         return(orders)
     except:
-        client.captureException()
+        #client.captureException()
         logger.error('Error thrown in percentage_rebalance', exc_info=True)
 
 def holdings_global_quote(holdings={}, global_quote_currency="USD",mark_prices=None):
@@ -77,7 +94,7 @@ def holdings_global_quote(holdings={}, global_quote_currency="USD",mark_prices=N
         #mark_price = float(mark_prices[currency]['mark_price']) if currency != global_quote_currency else 1
         mark_price = 0
         if currency in mark_prices:
-            mark_price = float(mark_prices[currency]['mark_price'])# if currency != global_quote_currency else 1
+            mark_price = float(mark_prices[currency])# if currency != global_quote_currency else 1
         """
         mark_price = 0
         if currency == global_quote_currency:
@@ -100,7 +117,7 @@ def holdings_value(holdings={}, global_quote_currency="USD",mark_prices=None):
         quoted_holdings = holdings_global_quote(holdings, global_quote_currency,mark_prices)
         marked_portfolio_value = sum([quoted_holdings[x] for x in quoted_holdings])
     except:
-        client.captureException()
+        #client.captureException()
         logger.error('Error thrown in percentagize', exc_info=True)
     return(marked_portfolio_value)
     
@@ -108,10 +125,10 @@ def percentagize(holdings, mark_prices, global_quote_currency='USD'):
     #x_percents = {x: Fraction(holdings[x], holdings_value(current_holdings=holdings, global_quote_currency="USD"
     #                                            ,current_pricing="coinmarketcap_tickerdump.csv")) for x in holdings}
     # Value of currency X in terms of global_quote / Total value of portfolio in terms of global_quote
+    # TODO: check that holdings.keys() and mark_prices.keys() overlap (we have a mark price for every holding)
     try:
-        print(type(mark_prices['BTC']['mark_price']))
         x_percents = {x: (float(holdings[x]) *
-                         (float(mark_prices[x]['mark_price'])
+                         (float(mark_prices[x])
                          if x != global_quote_currency else 1))
                           /holdings_value(holdings=holdings, global_quote_currency=global_quote_currency
                                                     ,mark_prices=mark_prices)
@@ -119,7 +136,7 @@ def percentagize(holdings, mark_prices, global_quote_currency='USD'):
 
         #x_percents =
     except:
-        client.captureException()
+        #client.captureException()
         logger.error('Error thrown in percentagize', exc_info=True)
     return(x_percents)
 
@@ -139,15 +156,15 @@ def unpercentagize(holdings, percents, mark_prices, global_quote_currency="USD")
             print("loop in optimal holdings")
             try:
                 weight = 0 if currency not in list(percents.keys()) else percents[currency]
-                mark_price = 1 if currency==global_quote_currency else float(mark_prices[currency]['mark_price'])
+                mark_price = 1 if currency==global_quote_currency else float(mark_prices[currency])
                 if mark_price != 0:
                     optimal_holdings[currency] = (float(aum_quote) * float(weight))/float(mark_price)
             except:
-                client.captureException()
+                #client.captureException()
                 logger.info('Error encountered when processing %s in optimal holdings', currency)
                 logger.error('Error thrown in unpercentagize loop', exc_info=True)
     except:
-        client.captureException()
+        #client.captureException()
         logger.error('Error thrown in unpercentagize', exc_info=True)
 
     return(optimal_holdings)
@@ -171,7 +188,7 @@ def filter_within_tolerance(percent_diffs, tolerance_percent=.01):
     try:
         filtered_diffs = {x: percent_diffs[x] for x in percent_diffs if abs(percent_diffs[x])>tolerance_percent}
     except:
-        client.captureException()
+        #client.captureException()
         logger.error('Error thrown in filter_within_tolerance', exc_info=True)
     return(filtered_diffs)
 
@@ -219,7 +236,7 @@ def diffs_to_trades(percent_diffs):
         print(percent_diffs)
         return(percent_transfers_to_make)
     except:
-        client.captureException()
+        #client.captureException()
         logger.error('Error thrown in diffs_to_trades', exc_info=True)
 
 def find_path(graph, start, end, path=[]):
@@ -317,8 +334,8 @@ def trades_to_orders(percent_transfers_to_make, holdings, mark_prices, global_qu
                         base_currency = markets[order['market']]['base_currency']
                         quote_currency = markets[order['market']]['quote_currency']
 
-                        marked_limit_price = float(mark_prices[base_currency]['mark_price'])
-                        exchange_rate = mark_prices[quote_currency]['mark_price'] if quote_currency != global_quote_currency else 1
+                        marked_limit_price = float(mark_prices[base_currency])
+                        exchange_rate = mark_prices[quote_currency] if quote_currency != global_quote_currency else 1
                         limit_price = marked_limit_price / float(exchange_rate)
 
                         txn_size = (account_value * trade['trade_percent']) / marked_limit_price
@@ -331,13 +348,13 @@ def trades_to_orders(percent_transfers_to_make, holdings, mark_prices, global_qu
 
                         temp_orders.append(temp_order)
                     except:
-                        client.captureException()
+                        #client.captureException()
                         logger.info('error occurred while processing order %s', order)
                         logger.error('Error thrown in trades_to_orders, processing an order', exc_info=True)
 
                 orders.append(temp_orders)
             except:
-                client.captureException()
+                #client.captureException()
                 logger.info('error occurred while processing trade %s', trade)
                 logger.error('Error thrown in trades_to_orders, processing a trade', exc_info=True)
 
@@ -345,6 +362,6 @@ def trades_to_orders(percent_transfers_to_make, holdings, mark_prices, global_qu
         # keep ordered orders intact
         return(orders)
     except:
-        client.captureException()
+        #client.captureException()
         logger.error('error thrown in trades_to_orders', exc_info=True)
     
