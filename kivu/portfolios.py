@@ -1,4 +1,5 @@
 import coinmarketcap as cmc
+import numpy as np
 
 def get_coinmarket_data(global_quote_currency='USD'):
     coinmarket_ticker_data = cmc.Market.ticker(convert = global_quote_currency)
@@ -19,3 +20,18 @@ def calculate_altfundx_weights(currencies=[], mark_prices=None, global_quote_cur
     return(weights)#,'rounded_price_usd','optimal_holdings']])
 #calculate_altfundx_allocation(currencies=['ETH','BTC'])
 
+def calculate_even_weights(currencies=[]):
+    even_weights = [1/len(currencies)] * len(currencies)
+    even_weights_dict = {x:y for x,y in zip(currencies, even_weights)}
+    return(even_weights_dict)
+    
+    
+def normalize_weights(weights):
+    
+    weight_sum = float(sum(weights.values()))
+    if weight_sum == 0:
+        return({x:0 for x in weights})
+    
+    normalized_weights = {x:y/weight_sum for x,y in weights.items()}
+    return(normalized_weights)
+    
