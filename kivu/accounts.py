@@ -6,14 +6,19 @@ import logging
 logger = logging.getLogger('local')
 
 
-def mark_price(base_currency, quote_currency, markets):
+def calc_mark_price(base_currency, quote_currency, markets):
     trade_path = find_trade_path(sell_currency=base_currency,
                                 buy_currency=quote_currency, 
                                 markets=markets)
     trade_prices = [markets[x['market']]['price']**(-1 if x['side']=='ASK' else 1) for x in trade_path]
-    mark_price = np.prod(trade_prices)
+    mark_price = np.prod(trade_prices)**-1
     
     return mark_price
+    
+def calc_mark_prices(markets, global_quote_currency=None):
+    currencies = list(set([y['quote_currency'] for x,y in markets.items()]+[y['base_currency'] for x,y in markets.items()]))
+    mark_prices = {x:calc_mark_price(x,global_quote_currency,markets) for x in currencies}
+    return(mark_prices)
 
 def percentage_rebalance(exchange, current_holdings, weights, mark_prices, global_quote_currency="USD",tolerance_percent=0.01):
     try:
@@ -118,7 +123,7 @@ def holdings_value(holdings={}, global_quote_currency="USD",mark_prices=None):
         marked_portfolio_value = sum([quoted_holdings[x] for x in quoted_holdings])
     except:
         #client.captureException()
-        logger.error('Error thrown in percentagize', exc_info=True)
+        logger.error('Error thrown in holdings value', exc_info=True)
     return(marked_portfolio_value)
     
 def percentagize(holdings, mark_prices, global_quote_currency='USD'):
