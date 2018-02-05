@@ -190,6 +190,7 @@ def scale_holdings_diff(percent_diffs, scaling_factor=.99):
     return(scaled_diffs)
 
 def filter_within_tolerance(percent_diffs, tolerance_percent=.01):
+    filtered_diffs = None
     try:
         filtered_diffs = {x: percent_diffs[x] for x in percent_diffs if abs(percent_diffs[x])>tolerance_percent}
     except:
