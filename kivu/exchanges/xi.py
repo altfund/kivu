@@ -523,3 +523,5 @@ def localRequestBalance(exchange):
         print("the data and it's damn shape", data)
         response.update({exchange.upper(): data})
     return response
+
+

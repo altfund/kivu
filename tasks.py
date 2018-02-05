@@ -12,24 +12,6 @@ from Crypto.Cipher import AES
 from invoke import task
 
 import kivu
-#from pyxi import kivu.exchanges.xi.directRequest
-#from pyxi import kivu.exchanges.xi.requestAggregateOrderBooks
-#from pyxi import kivu.exchanges.xi.requestBalance
-#from pyxi import localkivu.exchanges.xi.requestBalance
-#from pyxi import kivu.exchanges.xi.requestTradeHistory
-#from pyxi import kivu.exchanges.xi.requestOpenOrders
-#from pyxi import kivu.exchanges.xi.requestExchange
-#from pyxi import kivu.exchanges.xi.request
-#from pyxi import kivu.exchanges.xi.requestOrderBook
-#from pyxi import kivu.exchanges.xi.requestLimitOrder
-#from pyxi import kivu.exchanges.xi.cancelLimitOrder
-#from pyxi import kivu.exchanges.xi.requestAvailableMarkets
-#from pyxi import kivu.exchanges.xi.requestInterExchangeArbitrage
-#from pyxi import kivu.exchanges.xi.requestFillOrKill
-#from pyxi import kivu.exchanges.xi.requestOrders
-#from pyxi import kivu.exchanges.xi.requestAmTradeHistroy
-#from pyxi import kivu.exchanges.xi.requestFundingHistory
-#from pyxi import kivu.exchanges.xi.amCancelLimitOrder
 
 #balance, cancelorder, limitorder, openorders, orderbook, json, ticker, tradefees, tradehistory,
 

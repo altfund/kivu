@@ -20,9 +20,13 @@ def calculate_altfundx_weights(currencies=[], mark_prices=None, global_quote_cur
     return(weights)#,'rounded_price_usd','optimal_holdings']])
 #calculate_altfundx_allocation(currencies=['ETH','BTC'])
 
-def calculate_even_weights(currencies=[]):
+def calculate_even_weights(currencies=[], normalize=True):
     even_weights = [1/len(currencies)] * len(currencies)
     even_weights_dict = {x:y for x,y in zip(currencies, even_weights)}
+    
+    if normalize:
+        even_weights_dict = normalize_weights(even_weights_dict)
+    
     return(even_weights_dict)
     
     
