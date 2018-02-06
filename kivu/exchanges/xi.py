@@ -524,4 +524,3 @@ def localRequestBalance(exchange):
         response.update({exchange.upper(): data})
     return response
 
-

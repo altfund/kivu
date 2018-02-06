@@ -1,10 +1,12 @@
 from collections import defaultdict
 import numpy as np
 import copy
+import time
 
 import logging
 logger = logging.getLogger('local')
 
+from .exchanges import *
 
 def calc_mark_price(base_currency, quote_currency, markets):
     trade_path = find_trade_path(sell_currency=base_currency,
@@ -131,6 +133,7 @@ def percentagize(holdings, mark_prices, global_quote_currency='USD'):
     #                                            ,current_pricing="coinmarketcap_tickerdump.csv")) for x in holdings}
     # Value of currency X in terms of global_quote / Total value of portfolio in terms of global_quote
     # TODO: check that holdings.keys() and mark_prices.keys() overlap (we have a mark price for every holding)
+    x_percemts = {}
     try:
         x_percents = {x: (float(holdings[x]) *
                          (float(mark_prices[x])
@@ -371,3 +374,98 @@ def trades_to_orders(percent_transfers_to_make, holdings, mark_prices, global_qu
         #client.captureException()
         logger.error('error thrown in trades_to_orders', exc_info=True)
     
+
+def merge_two_dicts(x, y):
+    """Given two dicts, merge them into a new dict as a shallow copy."""
+    z = x.copy()
+    z.update(y)
+    return z
+    
+def local_available_markets(retry=True):
+    max_retries = 5
+    wait_time = 5 #seconds
+    retries = 0
+    while retries <= max_retries:
+        
+        target_exchange = xi.getSettings()['target_exchange']
+        
+        exchange_currencies = json.loads(xi.requestExchange(target_exchange,'currency')[target_exchange.upper()])
+        
+        excluded_currencies = xi.getSettings()['excluded_currencies']
+        #universe = getSettings()['target_universe']
+        
+        #tradeable_currencies = exchange_currencies.pop(excluded_currencies)
+        tradeable_currencies = list(exchange_currencies.keys())
+        
+        possible_markets = json.loads(xi.requestAvailableMarkets(coe_list=[{"exchange":target_exchange,"currencies":tradeable_currencies}])['availablemarkets'])
+    
+        raw_markets = {x:{'base_currency':x.split("/")[0], "quote_currency":x.split("/")[1]} for x in possible_markets}
+        
+        ticker = json.loads(xi.requestExchange(target_exchange,'ticker')[target_exchange.upper()])
+        
+        markets = {x:merge_two_dicts(y,ticker[x]) for x,y in raw_markets.items()}
+        
+        available_markets = {x:y for x,y in markets.items() if 'ERROR' not in y}
+        
+        for x,y in available_markets.items():
+            available_markets[x]['price'] = (y['bid']+y['ask'])/2.0
+    
+        
+        unavailable_markets= {x for x,y in raw_markets.items() if x not in available_markets}
+        if len(available_markets) != 0:
+            print("The following markets are being considered: ",list(available_markets.keys()))
+            print("The following markets were listed but tickers were unavailable: ",unavailable_markets)
+            return(available_markets)
+            
+        else:
+            retries += 1
+            print("No markets found. Waiting ",wait_time,"seconds before retry",retries,"of",max_retries)
+            time.sleep(wait_time)
+    print("No available markets were found. The following markets were listed but tickers were unavailable",
+            unavailable_markets)
+    return({})
+    
+def local_exchange_account(available_markets=None):
+    
+    if available_markets is None:
+        available_markets = local_available_markets()
+    
+    user_settings = xi.getSettings()
+    target_exchange = user_settings['target_exchange']
+    creds = xi.getCreds(target_exchange)
+    
+    
+    exchange_account = {'markets':available_markets,
+                    'name':target_exchange,
+                    'exchange_credentials':creds
+    }
+    return(exchange_account)
+    
+    
+def local_current_holdings(exchange_account=None):
+    
+    if exchange_account is None:
+        exchange_account = local_exchange_account()
+    
+    balances = xi.requestExchangeAccountBalance(exchange_account)
+    current_holdings = {x:y['available']+y['frozen'] for x,y in balances['wallet'].items()}
+    
+    ##TODO: fix corresponding bug in exchange interface
+    current_holdings['IOT'] = current_holdings.pop('IOTA', 0.0)
+    
+    return(current_holdings)
+    
+
+    
+def local_mark_prices(available_markets=None):
+    
+    if available_markets is None:
+        available_markets = local_available_markets()
+    
+    global_quote_currency = xi.getSettings()['global_quote_currency']
+    
+    mark_prices = calc_mark_prices(available_markets, global_quote_currency)
+    print(mark_prices)
+    return(mark_prices)
+
+

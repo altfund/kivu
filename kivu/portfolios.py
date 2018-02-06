@@ -1,6 +1,8 @@
 import coinmarketcap as cmc
 import numpy as np
 
+from .exchanges import *
+
 def get_coinmarket_data(global_quote_currency='USD'):
     coinmarket_ticker_data = cmc.Market.ticker(convert = global_quote_currency)
     coinmarket_data = {x['symbol']: x for x in coinmarket_ticker_data}
@@ -38,4 +40,14 @@ def normalize_weights(weights):
     
     normalized_weights = {x:y/weight_sum for x,y in weights.items()}
     return(normalized_weights)
+    
+def local_even_weights():
+    
+    user_settings = xi.getSettings()
+    target_universe = user_settings['target_universe'].split(",")
+
+    
+    weights = calculate_even_weights(currencies=target_universe, normalize=True)
+    
+    return(weights)
     

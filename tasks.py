@@ -286,3 +286,41 @@ def availablemarkets(name, exchanges, currencylists):
 def ls(name):
     for x in exchanges:
         print(x)
+
+@task
+def equal_rebalance(name):
+    
+    user_settings = kivu.exchanges.xi.getSettings()
+    
+    available_markets = kivu.accounts.local_available_markets()
+    exchange_account = kivu.accounts.local_exchange_account(available_markets=available_markets)
+    current_holdings = kivu.accounts.local_current_holdings(exchange_account)
+    weights = kivu.portfolios.local_even_weights()
+    mark_prices = kivu.accounts.local_mark_prices(available_markets=available_markets)
+    global_quote_currency = user_settings['global_quote_currency']
+    tolerance_percent = float(user_settings['tolerance_percent'])
+    
+    orders_to_rebalance = kivu.accounts.percentage_rebalance(exchange=exchange_account,
+                                            current_holdings=current_holdings,
+                                            weights=weights, 
+                                            mark_prices=mark_prices, 
+                                            global_quote_currency=global_quote_currency,
+                                            tolerance_percent=tolerance_percent)
+    
+    print(orders_to_rebalance)
+    
+    #kivu.orders.refresh_orders(orders_to_rebalance, exchange_account, test=bool(user_settings['test']))
+
+@task
+def fetch_markets(name):
+    kivu.accounts.local_available_markets()
+
+@task    
+def fetch_ticker(name):
+    marked_markets = kivu.accounts.calc_mark_prices(bonux.local_available_markets(), global_quote_currency='USD')
+    print(marked_markets)
+    
+@task
+def fetch_current_holdings(name):
+    current_holdings = kivu.accounts.local_current_holdings()
+    print(current_holdings)
