@@ -1,6 +1,7 @@
 Setup
 -------------
 Start an XI
+
 ``
 git clone [this repo]
 cd kivu
@@ -10,7 +11,9 @@ pip install .
 pytest
 cp config_template config
 ``
+
 Then fill in the config. Some example `[settings]` for use later:
+
 ``
 [settings]
 xi_url=http://localhost:9000
@@ -39,7 +42,8 @@ AM's non-django-specific logic is in the remaining files (which correspond to th
 
 ``backtests.py`` is a work in progress.
 
-## Rebalancing from the command line
+Rebalancing from the command line
+===================================
 ``invoke equal-rebalance``: rebalances to an equal notional value in each asset in the universe, as specified in config settings
 
 
