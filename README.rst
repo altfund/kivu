@@ -1,28 +1,41 @@
 Setup
 -------------
 
-- Start an XI
-- ``git clone``
-- ``cd kivu``
-- ``virtualenv --python=python3 env``
-- ``source env/bin/activate``
-- ``pip install .``
-- ``pytest``
-- ``cp config_template config``
+  Start an XI
+  
+  ``git clone``
+  
+  ``cd kivu``
+  
+  ``virtualenv --python=python3 env``
+  
+  ``source env/bin/activate``
+  
+  ``pip install .``
+ 
+  ``pytest``
+  
+  ``cp config_template config``
 
 Then fill in the config. Some example `[settings]` for use later:
 
-``
-[settings]
-xi_url=http://localhost:9000
-aes_key=0123456789101112
-test=True
-target_exchange=binance
-target_universe=[ETH,NEO]
-excluded_currencies=[]
-tolerance_percent=0
-global_quote_currency=USD
-``
+  [settings]
+  
+  xi_url=http://localhost:9000
+  
+  aes_key=0123456789101112
+  test=True
+
+  target_exchange=binance
+  
+  target_universe=[ETH,NEO]
+  
+  excluded_currencies=[]
+  
+  tolerance_percent=0
+  
+  global_quote_currency=USD
+
 
 you can use invoke for everything you're used to (with no more :
 ``invoke invoke symbols -e GDAX``
