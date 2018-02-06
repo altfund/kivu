@@ -6,6 +6,7 @@ cd kivu
 virtualenv --python=python3 env
 source env/bin/activate
 pip install .
+pytest
 cp config_template config
 ```
 Then fill in the config. Some example `[settings]` for use later:
